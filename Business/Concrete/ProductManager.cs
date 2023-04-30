@@ -1,5 +1,9 @@
 ﻿using Business.Abstract;
 using Business.Constants;
+using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Validation;
+using Core.CrossCuttingConcerns.Validation;
+using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
 using Entities.Concrete;
@@ -18,7 +22,7 @@ public class ProductManager : IProductService
 
     public IDataResult<List<Product>> GetAll()
     {
-       
+
         List<Product> data = _productDal.GetAll();
         return new SuccessDataResult<List<Product>>(data);
     }
@@ -51,11 +55,16 @@ public class ProductManager : IProductService
         return new SuccessDataResult<Product>(data);
     }
 
+    [ValidationAspect(typeof(ProductValidator))]
     public IResult Add(Product product)
     {
-        if (product.ProductName.Length < 2)
+        IResult result = BusinessRules.Run(
+            CheckIfProductCountOfCategoryCorrect(product.CategoryId), 
+            CheckIfProductNameExists(product.ProductName));
+        
+        if (result != null)
         {
-            return new ErrorResult("Ürün ismi en az 2 karakter olmalıdır");
+            return result;
         }
 
         _productDal.Add(product);
@@ -72,5 +81,29 @@ public class ProductManager : IProductService
     {
         _productDal.Delete(product);
         return new SuccessResult("Product Deleted");
+    }
+
+
+    private IResult CheckIfProductCountOfCategoryCorrect(int categoryId)
+    {
+        var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
+        if (result >= 15)
+        {
+            return new ErrorResult(Messages.ProductCountOfCategoryError);
+        }
+
+        return new SuccessResult();
+    }
+
+    private IResult CheckIfProductNameExists(string productName)
+    {
+
+        var result = _productDal.GetAll(p => p.ProductName == productName).Any();
+        if (result)
+        {
+            return new ErrorResult(Messages.ProductNameAlreadyExists);
+        }
+
+        return new SuccessResult();
     }
 }
