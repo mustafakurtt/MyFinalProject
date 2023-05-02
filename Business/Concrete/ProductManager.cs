@@ -2,6 +2,8 @@
 using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
+using Core.Aspects.Autofac.Caching;
+using Core.Aspects.Autofac.Performance;
 using Core.Aspects.Autofac.Validation;
 using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
@@ -21,10 +23,12 @@ public class ProductManager : IProductService
         _productDal = productDal;
     }
 
-    [SecuredOperation("admin")]
+    
+    //[SecuredOperation("admin")]
+    [CacheAspect]
+    [PerformanceAspect(5)]
     public IDataResult<List<Product>> GetAll()
     {
-
         List<Product> data = _productDal.GetAll();
         return new SuccessDataResult<List<Product>>(data);
     }
@@ -51,14 +55,19 @@ public class ProductManager : IProductService
         return new SuccessDataResult<List<ProductDetailDto>>(data);
     }
 
+
+    //[SecuredOperation("admin")]
+    [CacheAspect]
     public IDataResult<Product> GetById(int productId)
     {
         Product data = _productDal.Get(p => p.ProductId == productId);
         return new SuccessDataResult<Product>(data);
     }
 
-    [SecuredOperation("product.add,admin")]
+
+    //[SecuredOperation("product.add,admin")]
     [ValidationAspect(typeof(ProductValidator))]
+    [CacheRemoveAspect("IProductService.Get")]
     public IResult Add(Product product)
     {
         IResult result = BusinessRules.Run(
@@ -74,11 +83,13 @@ public class ProductManager : IProductService
         return new SuccessResult("Ürün Eklendi");
     }
 
+
     public IResult Update(Product product)
     {
         _productDal.Update(product);
         return new SuccessResult("Product Updated");
     }
+
 
     public IResult Delete(Product product)
     {

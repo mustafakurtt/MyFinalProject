@@ -1,17 +1,25 @@
 ﻿using Core.Utilities.IoC;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using System.Text.RegularExpressions;
+
 
 namespace Core.CrossCuttingConcerns.Caching.Microsoft;
 
 public class MemoryCacheManager : ICacheManager
 {
-    private IMemoryCache _memoryCache;
+    //Adapter Pattern
+    IMemoryCache _memoryCache;
 
-    public MemoryCacheManager(IMemoryCache memoryCache)
+    public MemoryCacheManager()
     {
         _memoryCache = ServiceTool.ServiceProvider.GetService<IMemoryCache>();
+    }
+
+    public void Add(string key, object value, int duration)
+    {
+        _memoryCache.Set(key, value, TimeSpan.FromMinutes(duration));
     }
 
     public T Get<T>(string key)
@@ -24,14 +32,9 @@ public class MemoryCacheManager : ICacheManager
         return _memoryCache.Get(key);
     }
 
-    public void Add(string key, object value, int duration)
+    public bool IsAdd(string key)
     {
-        _memoryCache.Set(key, value, TimeSpan.FromMinutes(duration));
-    }
-
-    public bool isAdd(string key)
-    {
-        return _memoryCache.TryGetValue(key,out _);
+        return _memoryCache.TryGetValue(key, out _);
     }
 
     public void Remove(string key)
@@ -41,8 +44,13 @@ public class MemoryCacheManager : ICacheManager
 
     public void RemoveByPattern(string pattern)
     {
-        var cacheEntriesCollectionDefinition = typeof(MemoryCache).GetProperty("EntriesCollection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        var cacheEntriesCollection = cacheEntriesCollectionDefinition.GetValue(_memoryCache) as dynamic;
+        FieldInfo? cacheEntriesStateDefinition = typeof(MemoryCache).GetField("_coherentState", BindingFlags.NonPublic | BindingFlags.Instance);
+        PropertyInfo? cacheEntriesCollectionDefinition = cacheEntriesStateDefinition?.FieldType.GetProperty("EntriesCollection", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        //var cacheEntriesCollectionDefinition = typeof(MemoryCache).GetProperty("EntriesCollection", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        //var cacheEntriesCollection = cacheEntriesCollectionDefinition?.GetValue(_memoryCache) as dynamic;
+        dynamic? cacheEntriesCollection = cacheEntriesCollectionDefinition.GetValue(cacheEntriesStateDefinition.GetValue(_memoryCache));
+
         List<ICacheEntry> cacheCollectionValues = new List<ICacheEntry>();
 
         foreach (var cacheItem in cacheEntriesCollection)
@@ -57,6 +65,7 @@ public class MemoryCacheManager : ICacheManager
         foreach (var key in keysToRemove)
         {
             _memoryCache.Remove(key);
-        } 
+        }
+
     }
 }

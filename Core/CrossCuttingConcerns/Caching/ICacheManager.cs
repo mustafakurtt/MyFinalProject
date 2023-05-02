@@ -2,11 +2,11 @@
 
 public interface ICacheManager
 {
-    T Get<T> (string key);
-    object Get (string key);
+    T Get<T>(string key);
+    object Get(string key);
     void Add(string key, object value, int duration);
-    bool isAdd(string key);
+    bool IsAdd(string key);
     void Remove(string key);
-    void RemoveByPatter(string pattern);
+    void RemoveByPattern(string pattern);
 
 }
