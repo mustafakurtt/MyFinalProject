@@ -1,4 +1,5 @@
 ﻿using Business.Abstract;
+using Business.BusinessAspects.Autofac;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
@@ -20,6 +21,7 @@ public class ProductManager : IProductService
         _productDal = productDal;
     }
 
+    [SecuredOperation("admin")]
     public IDataResult<List<Product>> GetAll()
     {
 
@@ -55,6 +57,7 @@ public class ProductManager : IProductService
         return new SuccessDataResult<Product>(data);
     }
 
+    [SecuredOperation("product.add,admin")]
     [ValidationAspect(typeof(ProductValidator))]
     public IResult Add(Product product)
     {

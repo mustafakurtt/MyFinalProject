@@ -11,6 +11,8 @@
     <PackageReference Include="Autofac.Extras.DynamicProxy" Version="6.0.1" />
     <PackageReference Include="Castle.Core" Version="5.1.1" />
     <PackageReference Include="FluentValidation" Version="11.5.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.5" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
@@ -20,8 +22,10 @@
 
   <ItemGroup>
     <Folder Include="Aspects\Autofac\Caching\" />
+    <Folder Include="CrossCuttingConcerns\Caching\Microsoft\" />
     <Folder Include="CrossCuttingConcerns\Validation\" />
     <Folder Include="Entities\Concrete\" />
+    <Folder Include="DependencyResolvers\" />
     <Folder Include="Security\Encryption\" />
     <Folder Include="Security\JWT\" />
     <Folder Include="Utilities\Business\" />

@@ -1,4 +1,6 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using Core.Utilities.IoC;
+using Microsoft.Extensions.DependencyInjection;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Core.Extensions;
